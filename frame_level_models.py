@@ -46,6 +46,7 @@ flags.DEFINE_string("video_level_classifier_model", "MoeModel",
                     "classifier layer")
 flags.DEFINE_integer("lstm_cells", 1024, "Number of LSTM cells.")
 flags.DEFINE_integer("lstm_layers", 2, "Number of LSTM layers.")
+flags.DEFINE_bool("lstm_peek", False, "Flag to allow peeking of long-term state")
 
 class FrameLevelLogisticModel(models.BaseModel):
 
@@ -214,11 +215,19 @@ class LstmModel(models.BaseModel):
     lstm_size = FLAGS.lstm_cells
     number_of_layers = FLAGS.lstm_layers
 
-    stacked_lstm = tf.contrib.rnn.MultiRNNCell(
-            [
-                tf.contrib.rnn.BasicLSTMCell(
-                    lstm_size, forget_bias=1.0)
-                for _ in range(number_of_layers)
+    if FLAGS.lstm_peek:
+        stacked_lstm = tf.contrib.rnn.MultiRNNCell(
+                [ tf.contrib.rnn.LSTMCell(lstm_size,
+                                          forget_bias=1.0,
+                                          use_peepholes=True,
+                                          activation=tf.tanh)
+                  for _ in range(number_of_layers)
+                ])
+    else:
+        stacked_lstm = tf.contrib.rnn.MultiRNNCell(
+                [ tf.contrib.rnn.BasicLSTMCell(lstm_size,
+                                               forget_bias=1.0)
+                  for _ in range(number_of_layers)
                 ])
 
     loss = 0.0
