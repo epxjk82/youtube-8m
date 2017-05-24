@@ -1,0 +1,48 @@
+# Logistic (video level)
+python train.py --train_data_pattern='../../datasets/youtube-8m/video_level/train*.tfrecord' --model=LogisticModel --train_dir=video_level_logistic_model --export_model_steps 2000
+python eval.py --eval_data_pattern='../../datasets/youtube-8m/video_level/validate*.tfrecord' --model=LogisticModel --train_dir=video_level_logistic_model --run_once=True
+python inference.py --output_file=video_level_logistic_model/predictions.csv --input_data_pattern='../../datasets/youtube-8m/video_level/test*.tfrecord' --train_dir=video_level_logistic_model
+
+# Logistic (video level w audio)
+python train.py --train_data_pattern='../../datasets/youtube-8m/video_level/train*.tfrecord' --model=LogisticModel --feature_names="mean_rgb, mean_audio" --feature_sizes="1024, 128" --train_dir=video_level_logistic_model_audio --export_model_steps 2000
+python eval.py --eval_data_pattern='../../datasets/youtube-8m/video_level/validate*.tfrecord' --model=LogisticModel --feature_names="mean_rgb, mean_audio" --feature_sizes="1024, 128" --train_dir=video_level_logistic_model_audio --run_once=True
+python inference.py --output_file=video_level_logistic_model/predictions.csv --input_data_pattern='../../datasets/youtube-8m/video_level/test*.tfrecord' --train_dir=video_level_logistic_model_audio
+
+# MOE (video level)
+python train.py --train_data_pattern='../../datasets/youtube-8m/video_level/train*.tfrecord' --model=MoeModel --train_dir=video_level_MOE_model --export_model_steps 2000
+python eval.py --eval_data_pattern='../../datasets/youtube-8m/video_level/validate*.tfrecord' --model=MoeModel --train_dir=video_level_MOE_model --run_once=True
+python inference.py --output_file=video_level_MOE_model/predictions.csv --input_data_pattern='../../datasets/youtube-8m/video_level/test*.tfrecord' --train_dir=video_level_MOE_model
+
+# MOE (video level w audio)
+python train.py --train_data_pattern='../../datasets/youtube-8m/video_level/train*.tfrecord' --model=MoeModel --feature_names="mean_rgb, mean_audio" --feature_sizes="1024, 128" --train_dir=video_level_MOE_model_audio --export_model_steps 2000
+python eval.py --eval_data_pattern='../../datasets/youtube-8m/video_level/validate*.tfrecord' --model=MoeModel --feature_names="mean_rgb, mean_audio" --feature_sizes="1024, 128" --train_dir=video_level_MOE_model_audio --run_once=True
+python inference.py --input_data_pattern='../../datasets/youtube-8m/video_level/test*.tfrecord' --feature_names="mean_rgb, mean_audio" --feature_sizes="1024, 128" --train_dir=video_level_MOE_model_audio --output_file=video_level_MOE_model_audio/predictions.csv
+
+# tensorboard --logdir=./
+
+# download
+cat ../download.py | shard=3,100 partition=1/frame_level/train mirror=us python
+cat ../download.py | shard=3,100 partition=1/frame_level/validate mirror=us python
+cat ../download.py | shard=3,100 partition=1/frame_level/test mirror=us python
+
+cat ../download.py | partition=1/video_level/train mirror=us python
+cat ../download.py | partition=1/video_level/validate mirror=us python
+cat ../download.py | shard=1,2 partition=1/video_level/test mirror=us python
+
+
+# Logistic (frame level)
+python train.py --train_data_pattern='../../datasets/youtube-8m/frame_level/train*.tfrecord' --frame_features=True --model=FrameLevelLogisticModel --feature_names="rgb" --feature_sizes="1024" --train_dir=frame_level_logistic_model --export_model_steps 1000
+python eval.py --eval_data_pattern='../../datasets/youtube-8m/frame_level/validate*.tfrecord' --frame_features=True --model=FrameLevelLogisticModel --feature_names="rgb" --feature_sizes="1024" --train_dir=frame_level_logistic_model --run_once=True
+
+
+# LSTM (frame level)
+python train.py --train_data_pattern='../../datasets/youtube-8m/frame_level/train*.tfrecord' --frame_features=True --model=LstmModel --feature_names="rgb" --feature_sizes="1024" --train_dir=frame_level_lstm_model_1_50 --batch_size=128 --export_model_steps 1000
+python eval.py --eval_data_pattern='../../datasets/youtube-8m/frame_level/validate*.tfrecord' --frame_features=True --model=LstmModel --feature_names="rgb" --feature_sizes="1024" --train_dir=frame_level_lstm_model_1_50 --run_once=True
+
+# LSTM (frame level w audio)
+python train.py --train_data_pattern='../../datasets/youtube-8m/frame_level/train*.tfrecord' --frame_features=True --model=LstmModel --feature_names="rgb, audio" --feature_sizes="1024, 128" --train_dir=frame_level_lstm_model_audio_3_100 --batch_size=128 --export_model_steps 1000
+python eval.py --eval_data_pattern='../../datasets/youtube-8m/frame_level/validate*.tfrecord' --frame_features=True --model=LstmModel --feature_names="rgb, audio" --feature_sizes="1024, 128" --train_dir=frame_level_lstm_model_audio_3_100 --run_once=True
+
+# LSTM (frame level w audio w peek)
+python train.py --train_data_pattern='../../datasets/youtube-8m/frame_level/train*.tfrecord' --frame_features=True --model=LstmModel --feature_names="rgb, audio" --feature_sizes="1024, 128" --train_dir=frame_level_lstm_peek_model_audio_3_100 --batch_size=128 --export_model_steps 1000 -lstm_peek True
+python eval.py --eval_data_pattern='../../datasets/youtube-8m/frame_level/validate*.tfrecord' --frame_features=True --model=LstmModel --feature_names="rgb, audio" --feature_sizes="1024, 128" --train_dir=frame_level_lstm_peek_model_audio_3_100 --run_once=True
